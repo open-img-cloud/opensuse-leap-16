@@ -22,7 +22,7 @@ echo "[customize] target: $QCOW2"
 
 virt-customize -a "$QCOW2" \
   --mkdir /etc/ssh/sshd_config.d \
-  --write '/etc/ssh/sshd_config.d/50-oic.conf:# openimages.cloud: public key only\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n' \
+  --copy-in "$(dirname -- "${BASH_SOURCE[0]}")/config/50-oic.conf:/etc/ssh/sshd_config.d/" \
   --run-command 'rm -rf /var/cache/dnf/* /var/cache/zypp/packages/* /tmp/* /var/tmp/*'
 
 echo "[customize] done"
