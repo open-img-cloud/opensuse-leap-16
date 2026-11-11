@@ -21,6 +21,8 @@ fi
 echo "[customize] target: $QCOW2"
 
 virt-customize -a "$QCOW2" \
+  --mkdir /etc/ssh/sshd_config.d \
+  --copy-in "$(dirname -- "${BASH_SOURCE[0]}")/config/50-oic.conf:/etc/ssh/sshd_config.d/" \
   --run-command 'rm -rf /var/cache/dnf/* /var/cache/zypp/packages/* /tmp/* /var/tmp/*'
 
 echo "[customize] done"
