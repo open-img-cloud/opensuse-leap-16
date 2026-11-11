@@ -1,0 +1,63 @@
+name: Build & publish image
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Override version (e.g. 16.0-18.92); otherwise derived from tag, falling back to VERSION'
+        required: false
+      publish:
+        description: 'If false, skip upload + CF purge (PR / dry-run validation)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write   # cosign keyless via GitHub OIDC
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ inputs.version }}" ]]; then
+            v="${{ inputs.version }}"
+          elif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            v="${GITHUB_REF#refs/tags/v}"
+          else
+            v=$(tr -d '[:space:]' < VERSION)
+          fi
+          if [[ ! "$v" =~ ^16\.0-[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::version '$v' is not in the upstream form (e.g. 16.0-18.92)"
+            exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Resolved: version=$v"
+
+  build:
+    needs: resolve-version
+    name: Build
+    uses: open-img-cloud/.github/.github/workflows/build-libguestfs-image.yml@main
+    with:
+      os_name: opensuse-leap-16
+      version: ${{ needs.resolve-version.outputs.version }}
+      output_filename: 'opensuse-leap-{version}-x86_64.qcow2'
+      upstream_url: 'https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud-Build{version_suffix}.qcow2'
+      upstream_checksum_url: 'https://download.opensuse.org/distribution/leap/16.0/appliances/Leap-16.0-Minimal-VM.x86_64-Cloud-Build{version_suffix}.qcow2.sha256'
+      decompress: none
+      customize_script: build/customize.sh
+      run_sysprep: true
+      sparsify_compress: true
+      runtime_smoke_login_user: opensuse
+      publish: ${{ inputs.publish == true || github.event_name == 'push' }}
+      sync_latest: true
+    secrets: inherit
