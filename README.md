@@ -28,7 +28,7 @@ openSUSE Leap 16.0 is maintained until six months after the release of Leap 16.1
 
 - File: `opensuse-leap-<version>-x86_64.qcow2`, where `<version>` is
   `16.0-<upstream build>` (e.g. `16.0-18.92`).
-- Default user: `opensuse` (SSH key from cloud-init, passwordless sudo).
+- Default user: `sles` (SSH key from cloud-init, passwordless sudo).
 - The root filesystem grows to the flavor disk on first boot.
 
 ## Use it

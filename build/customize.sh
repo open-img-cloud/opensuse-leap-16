@@ -4,7 +4,7 @@
 #
 # The upstream openSUSE Leap 16 cloud image already ships cloud-init,
 # openssh-server, qemu-guest-agent, a serial console and the
-# `opensuse` default user. The org-wide cloud-init policy drop-in
+# `sles` default user. The org-wide cloud-init policy drop-in
 # (datasource_list, disable_root, ssh_pwauth=false, mount_default_fields)
 # is injected by the reusable workflow after this script runs.
 # Customisation reduces to a package cache cleanup.
